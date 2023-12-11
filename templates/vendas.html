@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <title>Plataforma CRUD</title>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <ul class="nav-menu">
+              <li class="nav-item"><a href="/menu" class="a">Home</a></li> 
+                <li class="nav-item"><a href="/vendas_page" class="nav-link">Vendas</a></li>
+                <li class="nav-item"><a href="/cliente_app" class="nav-link">Clientes</a></li>
+                <li class="nav-item"><a href="/estoque" class="nav-link">Estoque</a></li>
+                <li class="nav-item"><a href="/enderecos_app" class="nav-link">Endereços</a></li>
+                <li class="nav-item"><a href="/relatorios" class="nav-link">Relatório</a></li>
+
+            </ul>
+            <div class="hamburguer">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </nav>
+    </header>
+    <div class="main">
+        <h1><span class="text-gradient">Gerencie suas vendas</span>.</h1>
+        <p class="main-description">Adicione, leia, edite e exclua suas vendas.</p>
+        <br>
+        <button class="a" onclick="openSubpage()">Adicionar Venda</button>
+        <br>
+        <div class="search_label">
+          <form action="/buscar_vendas" method="POST" class="formform">
+            <input type="text" name="pesquisa" id="pesquisa" class="pesquisa" placeholder="Faça uma procura..">
+  
+            <select id="filtro" name="filtro">
+              <option value="opcao1">Todos</option>
+              <option value="opcao2">Por Numero Pedido</option>
+              <option value="opcao3">Por Data</option>
+              <option value="opcao4">Por Produto</option>
+              <option value="opcao5">Por Status</option>
+              <option value="opcao6">Por Nome Cliente</option>
+              <option value="opcao7">Por Unidade</option>
+              <option value="opcao8">Por Desconto</option>
+              <option value="opcao9">Por Valor Final</option>
+            </select>
+            <button type="submit" class="a" id="btnFiltrar">Pesquisar</button>
+          </form>
+        </div>
+
+        <div id="subpage" class="subpage-overlay">
+          <div class="subpage-content">
+            <div class="form">
+              <form class="form" id="meu-formulario" action="/vendas_adicao" method="POST">
+                <h3>Novo Registro</h3>
+                <div class="form-group">
+                  <label for="numero">Numero Pedido:</label>
+                  <input type="number" id="numero" name="numero" readonly placeholder="Auto Incrementado">
+                </div>
+                <div class="form-group">
+                  <label for="data">Data:</label>
+                  <input type="date" id="data" name="data" required>
+                </div>
+                <div class="form-group">
+                  <label for="opcoes_label">Produto:</label>
+                  <select id="opcoes" onchange="preencherInput()">
+                      <!-- Opção padrão -->
+                      <option value="default">Selecione um produto</option>
+              
+                      <!-- Loop para inserir os produtos dinamicamente -->
+                      {% for produto in produtos %}
+                          <option value="{{ produto }}">{{ produto }}</option>
+                      {% endfor %}
+                  </select>
+                  <input type="text" id="opcoes-input" name="produto" readonly>
+              </div>
+                <div class="form-group">
+                  <label for="statusum">Status:</label>
+                  <input type="text" id="status" name="status" readonly placeholder="Auto Incrementado">
+                </div>
+                <div class="form-group">
+                  <label for="cliente" action="/impressao">Nome do  Cliente:</label>
+                  <select id="opcoes1" onchange="preencherInput1()">
+                    <!-- Opção padrão -->
+                    <option value="default">Selecione um cliente</option>
+            
+                    <!-- Loop para inserir os produtos dinamicamente -->
+                    {% for cliente_app in cliente_app %}
+                        <option value="{{ cliente_app }}">{{ cliente_app }}</option>
+                    {% endfor %}
+                </select>
+                  <input type="text" id="opcoes-input1" name="cliente" required>
+                </div>
+                <div class="form-group">
+                  <label for="unidade">Unidade:</label>
+                  <input type="number" id="unidade" name="unidade" required>
+                </div>
+                <div class="form-group">
+                  <label for="desc">Desconto:</label>
+                  <input type="number" id="desc" name="desc">
+                </div>
+                <div class="form-group">
+                  <label for="valorf">Valor Final:</label>
+                  <input type="number" id="valorf" name="valorf" readonly placeholder="Auto Incrementado">
+                </div>
+                <button type="submit" class="a2" action="/adicionar">Adicionar Venda</button>
+              </form>
+            </div>
+            <button onclick="closeSubpage()" class="a1">Fechar</button>
+          </div>
+        </div>
+        <br>
+        <div class="container">
+          <div class="table">
+            <table id="table">
+              <thead>
+                <tr class="titletable">
+                  <td>Numero Pedido</td>
+                  <td>Data</td>
+                  <td>Produto</td>
+                  <td>Status Produto</td>
+                  <td>Cliente</td>
+                  <td>Unidade</td>
+                  <td>Desconto</td>
+                  <td>Valor Final</td>
+
+                </tr>
+              </thead>
+              <tbody>
+                {% for resultado in resultados %}
+                <tr>
+                  <td>{{ resultado[0] }}</td>
+                  <td>{{ resultado[1] }}</td>
+                  <td>{{ resultado[2] }}</td>
+                  <td>{{ resultado[3] }}</td>
+                  <td>{{ resultado[4] }}</td>
+                  <td>{{ resultado[5] }}</td>
+                  <td>{{ resultado[6] }}</td>
+                  <td>{{ resultado[7] }}</td>
+                  <td>
+                    <form class="maldito" action="/excluir3/{{ resultado[0] }}" method="POST">
+                      <button type="submit" onclick="excluirLinha(this)">Excluir</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+    <div>
+    </div>
+
+
+
+
+<!-- Style -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap'); 
+
+:root {
+--background-color: white;
+--foreground-color-1: #6c00ff;
+--foreground-color-2: #c400ff;
+--text-color-1: white;
+--text-color-2: black;
+}
+
+* {
+padding: 0;
+margin: 0;
+border: none;
+outline: none;
+box-sizing: border-box;
+font-family: 'Poppins', sans-serif;
+}
+
+body {
+background: var(--background-color);
+}
+
+h1, h2, h3, p {
+color: var(--text-color-2);
+}
+
+
+/* Header */
+header{
+background-color: #fff;
+}
+
+li {
+list-style: none;
+}
+
+a {
+color: black;
+text-decoration: none;
+}
+
+.navbar {
+display: flex;
+align-items: center;
+justify-content: center; /* Centralizar horizontalmente */
+min-height: 70px;
+padding: 0 34px;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra abaixo do navbar */
+}
+
+
+
+.nav-menu {
+display: flex;
+align-items: center;
+justify-content: center; /* Centralizar horizontalmente */
+gap: 30px;
+}
+
+.nav-menu li {
+display: inline-block;
+margin-right: 60px;
+}
+
+.nav-menu li:last-child {
+margin-right: 0;
+}
+
+.nav-menu .a {
+text-decoration: none;
+color: rgb(255, 255, 255);  /* Estilo dos links */
+}
+
+.nav-menu li a:hover {
+text-decoration: none;  /* Estilo dos links ao passar o mouse */
+}
+
+.nav-link {
+transition: 0.5s ease;
+}
+
+.nav-link:hover {
+color: #ccc;
+}
+
+.hamburguer {
+display: none;
+cursor: pointer;
+}
+
+.bar {
+display: block;
+width: 28px;
+height: 3px;
+border-radius: 2px;
+margin: 5px auto;
+background-color:var(--foreground-color-1);
+transition: all 0.3s ease-in-out;
+}
+
+
+/* Responsividade Nav Bar */
+
+@media (max-width:768px) {
+.hamburguer{
+    display: block;
+    margin-right: auto;
+}
+.hamburguer.active .bar:nth-child(2) {
+    opacity: 0;
+}
+.hamburguer.active .bar:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.hamburguer.active .bar:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+.nav-menu {
+    position: fixed;
+    left: -100%;
+    top: 70px;
+    gap: 0;
+    border-radius: 0 0 20px 20px;
+    background-color: #fff;
+    text-align: center;
+    flex-direction: column;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra abaixo do navbar */
+    transition: 0.3s;
+}
+
+.nav-item {
+    margin: 16px 0;
+}
+
+.nav-menu.active {
+    left: 0;
+}
+}
+
+
+
+
+
+
+
+
+
+/* Main */
+.main {
+  height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+  margin: 100px;
+  margin-bottom: 20px; /* Adiciona 20px de margem inferior */
+}
+
+
+.main h1 {
+  margin-bottom: 10px;
+}
+
+.main p {
+  margin-top: 10px;
+}
+
+.text-gradient {
+    background-color: var(--foreground-color-1);
+    background-image: linear-gradient(45deg, var(--foreground-color-1), var(--foreground-color-2));
+    background-size: 100%;
+    background-repeat: repeat;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -moz-background-clip: text;
+    -moz-text-fill-color: transparent;
+}
+
+
+
+
+
+
+
+
+
+/* Style Table */
+
+@media screen and (max-width: 600px) {
+  .table {
+    display: block;
+  }
+  
+  .table table {
+    width: auto;
+  }
+  
+  .table th,
+  .table td {
+    white-space: normal;
+  }
+}
+
+.table {
+  width: 100%;
+  white-space: nowrap;
+}
+
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.titletable {
+  background-color: var(--foreground-color-1);
+  color: #fff;
+}
+
+td {
+  border: 1px solid black;
+  padding: 10px;
+}
+
+.a {
+  width: 100%;
+  max-width: 350px; /* Defina o valor desejado para o limite máximo */
+  padding: 10px 25px;
+  background-color: var(--foreground-color-1);
+  border-radius: 20px;
+  color: var(--text-color-1);
+  font-size: 1rem;
+  transition: all 300ms;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.a:hover {
+    background: var(--foreground-color-1);
+}
+
+.a:active {
+    transform: scale(1.1);
+}
+
+.a1 {
+  width: 100%;
+  padding: 10px 25px;
+
+  background-color: var(--foreground-color-1);
+  border-radius: 20px;
+  color: var(--text-color-1);
+  font-size: 1rem;
+  transition: all 300ms;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+}
+
+
+.a1:hover {
+    background: var(--foreground-color-1);
+}
+
+.a1:active {
+    transform: scale(1.1);
+}
+
+.a2 {
+  width: 100%;
+  padding: 10px 25px;
+  background-color: var(--foreground-color-1);
+  color: var(--text-color-1);
+  font-size: 1rem;
+  transition: all 300ms;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.a2:hover {
+    background: var(--foreground-color-1);
+}
+
+.a2:active {
+    transform: scale(1.1);
+}
+
+
+
+
+
+
+
+/* Subpagina */
+.subpage-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  align-items: center;
+  overflow: auto; /* Adiciona uma barra de rolagem */
+}
+
+.subpage-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0s linear;
+}
+
+.subpage-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  max-height: 90%; /* Define uma altura máxima para o conteúdo */
+  overflow: auto; /* Adiciona uma barra de rolagem quando necessário */
+}
+
+.subpage-overlay.open .subpage-content {
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 0.3s ease;
+}
+
+.form {
+  border: 1px solid var(--foreground-color-1);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+input {
+  width: 100%;
+  min-height: 50px;
+  padding: 10px;
+  border-bottom: solid 1px var(--foreground-color-1);
+}
+
+.signup_link {
+  display: flex;
+  align-items: center;
+}
+
+.signup_link a {
+  margin-left: 10px;
+  margin-bottom: 40px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .subpage-content {
+    width: 90%;
+    max-width: 400px;
+  }
+  
+  input {
+    min-height: 40px;
+  }
+  
+  .signup_link {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .signup_link a {
+    margin: 10px 0;
+  }
+}
+
+/* Select */
+.search_label {
+  display: flex;
+  align-items: center;
+}
+
+.pesquisa {
+  width: 100%;
+  max-width: 350px; /* Defina o valor desejado para o limite máximo */
+  padding: 10px 25px;
+}
+.filter-container {
+    display: flex;
+    align-items: center;
+  }
+
+  .filter-label {
+    margin-right: 10px;
+  }
+
+  .filter-select {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+  }
+
+  .filter-button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .formform {
+    border: 1px solid var(--foreground-color-1);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+</style>
+
+
+
+
+<!-- Script -->
+<script>
+    const hamburguer = document.querySelector(".hamburguer");
+    const navMenu = document.querySelector(".nav-menu");
+
+    hamburguer.addEventListener("click", () => {
+        hamburguer.classList.toggle('active')
+        navMenu.classList.toggle('active')
+    })
+</script>
+<script>
+    function executarAcao() {
+        fetch('/executar_acao', { method: 'POST' })
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => console.log(error));
+    }
+</script>
+</script>
+
+
+<!-- <script>
+ function addRow() {
+  // Obtém os valores dos campos do formulário
+  var numero = document.getElementById("numero").value;
+  var data = document.getElementById("data").value;
+  var contato = document.getElementById("contato").value;
+  var cliente = document.getElementById("cliente").value;
+  var unidade = document.getElementById("unidade").value;
+  var desc = document.getElementById("desc").value;
+  var valorf = document.getElementById("valorf").value;
+
+  // Cria um objeto com os dados da venda
+  var venda = {
+    numero: numero,
+    data: data,
+    contato: contato,
+    cliente: cliente,
+    unidade: unidade,
+    desc: desc,
+    valorf: valorf
+  };
+
+  // Obtém os dados existentes do armazenamento local
+  var vendas = JSON.parse(localStorage.getItem("vendas")) || [];
+
+  // Adiciona a nova venda aos dados existentes
+  vendas.push(venda);
+
+  // Salva os dados atualizados no armazenamento local
+  localStorage.setItem("vendas", JSON.stringify(vendas));
+
+  // Atualiza a tabela
+  updateTable();
+
+  // Limpa os campos do formulário após adicionar os dados à tabela pelo id
+  document.getElementById("numero").value = "";
+  document.getElementById("data").value = "";
+  document.getElementById("contato").value = "";
+  document.getElementById("cliente").value = "";
+  document.getElementById("unidade").value = "";
+  document.getElementById("desc").value = "";
+  document.getElementById("valorf").value = "";
+
+  // Fecha a subpágina
+  closeSubpage();
+}
+
+function updateTable() {
+  // Obtém a tabela
+  var table = document.getElementById("table");
+
+  // Limpa o conteúdo atual da tabela
+  while (table.rows.length > 1) {
+    table.deleteRow(1);
+  }
+
+  // Obtém os dados do armazenamento local
+  var vendas = JSON.parse(localStorage.getItem("vendas")) || [];
+
+  // Preenche a tabela com os dados
+  for (var i = 0; i < vendas.length; i++) {
+    var venda = vendas[i];
+    var row = table.insertRow(-1);
+    var cell1 = row.insertCell(0);
+    var cell2 = row.insertCell(1);
+    var cell3 = row.insertCell(2);
+    var cell4 = row.insertCell(3);
+    var cell5 = row.insertCell(2);
+    var cell6 = row.insertCell(3);
+    cell1.innerHTML = venda.numero;
+    cell2.innerHTML = venda.data;
+    cell3.innerHTML = venda.contato;
+    cell4.innerHTML = venda.cliente;
+    cell5.innerHTML = venda.unidade;
+    cell6.innerHTML = venda.desc;
+    cell7.innerHTML = venda.valorf;
+  }
+}
+
+function closeSubpage() {
+  var subpage = document.getElementById("subpage");
+  subpage.style.display = "none";
+}
+
+// Atualiza a tabela quando a página for carregada
+window.onload = updateTable;
+
+</script> -->
+
+<!-- Subpágina -->
+<script>
+  function openSubpage() {
+  document.getElementById('subpage').style.display = 'block';
+}
+
+function closeSubpage() {
+  document.getElementById('subpage').style.display = 'none';
+}
+</script>
+
+<script>
+  $(document).ready(function () {
+      // Obter a data atual em formato ISO (AAAA-MM-DD)
+      var dataAtual = new Date().toISOString().slice(0, 10);
+
+      // Definir o valor do campo de data com a data atual
+      $('#data').val(dataAtual);
+  });
+</script>
+
+
+<script>
+    function preencherInput() {
+        var opcoes = document.getElementById("opcoes");
+        var opcoesInput = document.getElementById("opcoes-input");
+        opcoesInput.value = opcoes.value;
+    }
+
+    // Carregar os dados dos produtos ao carregar a página
+    window.addEventListener("load", function() {
+        fetch("/produtos") // Rota para obter os dados dos produtos
+        .then(response => response.json())
+        .then(data => {
+            var opcoes = document.getElementById("opcoes");
+            opcoes.innerHTML = ""; // Limpar o select antes de preencher novamente
+            data.forEach(function(produto) {
+                var option = document.createElement("option");
+                option.value = produto;
+                option.text = produto;
+                opcoes.appendChild(option);
+            });
+            preencherInput(); // Chamar a função para preencher o campo input com o valor inicial
+        })
+        .catch(error => console.error("Erro ao obter os produtos:", error));
+    });
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Defina o valor padrão desejado para o campo de desconto
+    var valorPadraoDesconto = 0; // Por exemplo, 10%
+
+    // Selecione o elemento do input pelo ID
+    var inputDesconto = document.getElementById("desc");
+
+    // Atribua o valor padrão ao campo de entrada
+    inputDesconto.value = valorPadraoDesconto;
+  });
+</script>
+
+<script>
+  function excluirLinha(btnExcluir) {
+  // Obtém a linha pai do botão "Excluir"
+  var row = btnExcluir.parentNode.parentNode;
+
+  // Exibe uma caixa de diálogo de confirmação
+  var confirmacao = confirm("Deseja excluir esta linha? Essa ação é irreversível");
+
+  // Se o usuário confirmar, envia o formulário de exclusão
+  if (confirmacao) {
+    btnExcluir.parentNode.submit();
+  } else {
+    // Caso contrário, cancela o evento de envio do formulário
+    event.preventDefault();
+  }
+}
+</script>
+
+<script>
+  function preencherInput1() {
+      var opcoes = document.getElementById("opcoes1");
+      var opcoesInput = document.getElementById("opcoes-input1");
+      opcoesInput.value = opcoes.value;
+  }
+
+  // Carregar os dados dos produtos ao carregar a página
+  window.addEventListener("load", function() {
+      fetch("/clientes_add_select") // Rota para obter os dados dos produtos
+      .then(response => response.json())
+      .then(data => {
+          var opcoes = document.getElementById("opcoes1");
+          opcoes.innerHTML = ""; // Limpar o select antes de preencher novamente
+          data.forEach(function(produto) {
+              var option = document.createElement("option");
+              option.value = produto;
+              option.text = produto;
+              opcoes.appendChild(option);
+          });
+          preencherInput1(); // Chamar a função para preencher o campo input com o valor inicial
+      })
+      .catch(error => console.error("Erro ao obter os produtos:", error));
+  });
+</script>
+</body>
+</html>
